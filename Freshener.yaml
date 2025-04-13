@@ -1,0 +1,90 @@
+output:
+  - platform: gpio
+    pin: GPIO15
+    id: relay_output
+
+
+globals:
+  - id: sensor_estado
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+
+binary_sensor:
+  - platform: template
+    id: execution_sensor
+    name: "Estado"
+    icon: "mdi:flower-outline"  
+    lambda: |-
+      return id(sensor_estado);
+
+script:
+  - id: pulse_1
+    then:
+      - lambda: |-
+          id(sensor_estado) = true;
+          id(execution_sensor).publish_state(true);
+      - repeat:
+          count: 1
+          then:
+            - output.turn_on: relay_output
+            - delay: 0.5s
+            - output.turn_off: relay_output
+            - delay: 0.5s
+      - lambda: |-
+          id(sensor_estado) = false;
+          id(execution_sensor).publish_state(false);
+  - id: pulse_2
+    then:
+      - lambda: |-
+          id(sensor_estado) = true;
+          id(execution_sensor).publish_state(true);
+      - repeat:
+          count: 2
+          then:
+            - output.turn_on: relay_output
+            - delay: 0.5s
+            - output.turn_off: relay_output
+            - delay: 0.5s
+      - lambda: |-
+          id(sensor_estado) = false;
+          id(execution_sensor).publish_state(false);
+  - id: pulse_3
+    then:
+      - lambda: |-
+          id(sensor_estado) = true;
+          id(execution_sensor).publish_state(true);
+      - repeat:
+          count: 3
+          then:
+            - output.turn_on: relay_output
+            - delay: 0.5s
+            - output.turn_off: relay_output
+            - delay: 0.5s 
+      - lambda: |-
+          id(sensor_estado) = false;
+          id(execution_sensor).publish_state(false);
+
+
+button:
+  - platform: template
+    name: "Spray x1"
+    icon: "mdi:spray"
+    id: virtual_relay_switch_1
+    on_press:
+      then:
+      - script.execute: pulse_1
+  - platform: template
+    name: "Spray x2"
+    icon: "mdi:spray"
+    id: virtual_relay_switch_2
+    on_press:
+      then:
+      - script.execute: pulse_2
+  - platform: template
+    name: "Spray x3"
+    icon: "mdi:spray"
+    id: virtual_relay_switch_3
+    on_press:
+      then:
+      - script.execute: pulse_3
